@@ -1,0 +1,67 @@
+{
+  "builders": [{
+    "type": "qemu",
+    "iso_url": "{{user `mirror`}}{{user `version`}}/amd64/{{user `imagename`}}",
+    "iso_checksum": "{{user `iso_checksum`}}",
+    "iso_checksum_type": "{{user `iso_checksum_type`}}",
+    "output_directory": "output-openbsd-{{user `version`}}-amd64-{{build_type}}",
+    "vm_name": "packer-openbsd-{{user `version`}}-amd64",
+    "disk_size": "{{user `disk_size`}}",
+    "headless": "{{user `headless`}}",
+    "http_directory": "http",
+    "boot_wait": "20s",
+    "boot_command": [
+        "S<enter>",
+        "cat <<EOF >>install.conf<enter>",
+        "System hostname = router<enter>",
+        "Password for root = {{user `root_pw`}}<enter>",
+        "Setup a user = {{user `user_username`}}<enter>",
+        "Password for user = {{user `user_pw`}}<enter>",
+        "Allow root ssh login = yes<enter>",
+        "What timezone are you in = UTC<enter>",
+        "Location of sets = http<enter>",
+        "HTTP Server = cdn.openbsd.org<enter>",
+        "Set name(s) = -game*.tgz -x*.tgz<enter>",
+        "EOF<enter>",
+        "install -af install.conf && reboot<enter>"
+    ],
+    "ssh_timeout": "{{user `ssh_timeout`}}",
+    "ssh_username": "root",
+    "ssh_password": "{{ user `root_pw`}}",
+    "shutdown_command": "shutdown -h -p now",
+    "qemuargs": [
+      ["-m", "{{user `memory`}}"],
+      ["-smp", "{{user `cpus`}}"]
+    ]
+  }
+  ],
+  "provisioners": [
+    {
+        "type": "shell",
+        "inline": ["pkg_add python-3.6.9"]
+    }
+  ],
+  "post-processors": [
+    {
+      "type": "vagrant",
+      "output": "openbsd-{{user `version`}}-amd64-{{.Provider}}.box",
+      "keep_input_artifact": true
+    }
+],
+  "variables": {
+    "user_username":"vagrant",
+    "user_pw":"vagrant",
+    "root_pw":"vagrant",
+    "version":"6.6",
+    "imagename":"cd66.iso",
+    "iso_checksum": "c2d4d567657b3160b549ebc08561e3c8a2e8130cdd8d4676476861d5e063ea7a",
+    "iso_checksum_type": "sha256",
+    "memory": "512",
+    "mirror": "https://cloudflare.cdn.openbsd.org/pub/OpenBSD/",
+    "compression_level": "6",
+    "cpus": "1",
+    "disk_size": "40000",
+    "headless": "false",
+    "ssh_timeout": "60m"
+  }
+}
